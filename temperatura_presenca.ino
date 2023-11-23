@@ -15,8 +15,9 @@ const int mqtt_port = 1883;
 int mqtt_timeout = 10000;
 
 const char* mqtt_usernameAdafruitIO = "Gabsop";
-const char* mqtt_keyAdafruitIO = "aio_hgRK23qm6Mf5zNvXLsyGJ4CpMm62";
+const char* mqtt_keyAdafruitIO = "aio_sAzW76HtuoLbdgIbtJ3i7AciBblX";
 
+#define ONBOARD_LED 2
 #define DHTPIN 4
 #define DHTTYPE DHT11
 
@@ -46,6 +47,7 @@ void setup() {
   // Configurando Pinos
   pinMode(ENTRY_PIN, INPUT);
   pinMode(EXIT_PIN, INPUT);
+  pinMode(ONBOARD_LED,OUTPUT);
 
   dht.begin();
 }
@@ -117,15 +119,20 @@ void connectWiFi() {
 
   unsigned long tempoInicial = millis();
   while (WiFi.status() != WL_CONNECTED && (millis() - tempoInicial < wifi_timeout)) {
+    digitalWrite(ONBOARD_LED,HIGH);
     Serial.print(".");
-    delay(100);
+    delay(500);
+    digitalWrite(ONBOARD_LED,LOW);
+    delay(500);
   }
   Serial.println();
 
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Conexão com WiFi falhou!");
+    digitalWrite(ONBOARD_LED,LOW);
   } else {
     Serial.print("Conectado com o IP: ");
+    digitalWrite(ONBOARD_LED,HIGH);
     Serial.println(WiFi.localIP());
   }
 }
