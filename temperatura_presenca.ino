@@ -1,7 +1,15 @@
 #include "DHT.h"
+#include <FS.h>
+#include <Arduino.h>
+#include "SPIFFS.h"
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>
+
+int num=0;
+String str;
+String s;
+
 
 WiFiClient wifi_client;
 PubSubClient mqtt_client(wifi_client);
@@ -36,6 +44,16 @@ void setup() {
   Serial.println(F("Begin!"));
   Serial.print(F("People: "));
   Serial.println(people);
+
+  //Arquivo
+  //formatar arquivo ao iniciar
+  formatFile();
+  //se precisar ler descomentar esse trecho
+  //Serial.println("abrir arquivo");
+  //openFS();
+  //String alunos = readFile("/alunos.txt");
+
+  // Fim Arquivo
 
   // Configurando Wifi
   WiFi.mode(WIFI_STA); //"station mode": permite o ESP32 ser um cliente da rede WiFi
@@ -72,6 +90,8 @@ void loop() {
     Serial.print(F("People: "));
     Serial.println(people);
     mqtt_client.publish("Gabsop/feeds/tempwarden-pro-max-v2.people-in-room", String(people).c_str(), true);
+    //substituir pelo codigo do RFID
+    writeFile("ID: " + String(3123123) + "Nome: " + "Thauanny" + "Data: " + "20/06/2321" + "Estado: " + "Entrou", "/alunos.txt");
 
     Serial.println(F("Someone entered the room"));
     if (people % MIN_PEOPLE_TO_ADJUST == 0) {
@@ -84,6 +104,8 @@ void loop() {
     Serial.print(F("People: "));
     Serial.println(people);
     mqtt_client.publish("Gabsop/feeds/tempwarden-pro-max-v2.people-in-room", String(people).c_str(), true);
+    //substituir pelo codigo do RFID
+    writeFile("ID: " + String(3123123) + "Nome: " + "Thauanny" + "Data: " + "20/06/2321" + "Estado: " + "Saiu" , "/alunos.txt");
     Serial.println(F("Someone left the room"));
     if (people % MIN_PEOPLE_TO_ADJUST == 0) {
       adjustTemperatureMessage(false, temperature, humidity); // Decrease temperature
@@ -155,4 +177,57 @@ void connectMQTT() {
     }
   }
   Serial.println();
+}
+
+void writeFile(String string, String path) { //escreve conteúdo em um arquivo
+  File rFile = SPIFFS.open(path, "a");//a para anexar
+  if (!rFile) {
+    Serial.println("Erro ao abrir arquivo!");
+  }
+  else {
+    Serial.print("tamanho");
+    Serial.println(rFile.size());
+    rFile.println(string);
+    Serial.print("Gravou: ");
+    Serial.println(string);
+  }
+  rFile.close();
+}
+
+
+String readFile(String path) {
+  Serial.println("Read file");
+  File rFile = SPIFFS.open(path, "r");//r+ leitura e escrita
+  if (!rFile) {
+    Serial.println("Erro ao abrir arquivo!");
+  }
+  else {
+    Serial.print("----------Lendo arquivo ");
+    Serial.print(path);
+    Serial.println("  ---------");
+    while (rFile.position() < rFile.size())
+    {
+      s = rFile.readStringUntil('\n');
+      s.trim();
+      Serial.println(s);
+    }
+    rFile.close();
+    return s;
+  }
+}
+
+void formatFile() {
+  Serial.println("Formantando SPIFFS");
+  SPIFFS.format();
+  Serial.println("Formatou SPIFFS");
+}
+
+
+void openFS(void) {
+  if (!SPIFFS.begin()) {
+    Serial.println("\nErro ao abrir o sistema de arquivos");
+  }
+  else {
+    Serial.println("\nSistema de arquivos aberto com sucesso!");
+  }
 }
